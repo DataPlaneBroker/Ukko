@@ -1,0 +1,58 @@
+vnfd:vnfd-catalog:
+    vnfd:
+    -   id: firewall
+        name: firewall
+        short-name: firewall
+        description: Controls incoming and outgoing traffic
+        vendor: Abubakr Magzoub, Lancaster University
+        version: '1.0'
+
+        connection-point:        
+            -   name: firewall_mgmt_cp
+                type: VPORT      
+            -   name: firewall_prime_cp
+                type: VPORT  
+                port-security-enabled: false
+            -   name: firewall_private_cp
+                type: VPORT
+                port-security-enabled: false
+
+        mgmt-interface:
+            cp: firewall_mgmt_cp
+
+        vdu: 
+        -   id: firewall
+            name: firewall
+            description: Controls incoming and outgoing traffic 
+            count: 1
+            image: 'ubuntu-cloud'
+
+            cloud-init-file: cloud-init-firewall
+
+            vm-flavor: 
+                vcpu-count: 1
+                memory-mb: 4096
+                storage-gb: 10
+              
+            interface:
+            -   name: firewall_mgmt_int
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: firewall_mgmt_cp
+                mgmt-interface: true 
+                position: '1' 
+
+            -   name: firewall_prime_int
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: firewall_prime_cp
+                position: '2' 
+
+            -   name: firewall_private_int
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: firewall_private_cp
+                position: '3' 

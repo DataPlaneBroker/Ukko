@@ -1,0 +1,141 @@
+nsd:nsd-catalog:
+    nsd:
+    -   id: InfluxDB
+        name: InfluxDB
+        short-name: InfluxDB
+        description: InfluxDB service
+        vendor: Abubakr Magzoub, Lancaster University
+        version: '1.0'
+        logo: icon.png        
+        constituent-vnfd:
+        -   member-vnf-index: 1
+            vnfd-id-ref: aggr
+        -   member-vnf-index: 2
+            vnfd-id-ref: firewall 
+        -   member-vnf-index: 3
+            vnfd-id-ref: haproxy
+        -   member-vnf-index: 4
+            vnfd-id-ref: relay
+
+        ip-profiles:
+        -   name: profile_prime
+            description: Subnet profile for network between aggregators and firewall
+            ip-profile-params:
+                ip-version: ipv4
+                subnet-address: 192.168.10.0/24
+
+        -   name: profile_private
+            description: Subnet profile for connection between the firewall and the load-balancer 
+            ip-profile-params:
+                ip-version: ipv4
+                subnet-address: 192.168.20.0/24
+
+        -   name: profile_core
+            description: Subnet profile for connection between the load-balancer and the InfluxDB relays
+            ip-profile-params:
+                ip-version: ipv4
+                subnet-address: 192.168.28.0/28
+                dhcp-params:
+                    enabled: true
+                    start-address: 192.168.28.4
+                    count: 11
+
+        -   name: profile_central
+            description: Subnet profile for connection between the relays and InfluxDB servers
+            ip-profile-params:
+                ip-version: ipv4
+                subnet-address: 192.168.30.0/24
+
+        -   name: profile_public
+            description: Subnet profile for connection between the relays and InfluxDB servers
+            ip-profile-params:
+                ip-version: ipv4
+                subnet-address: 192.168.40.0/24
+     
+        vld:        
+        -   id: osm-inet            
+            name: osm-inet
+            short-name: osm-inet
+            description: Managment network 
+            version: '1.0'
+            type: ELAN
+            vim-network-name: osm-inet             
+            mgmt-network: 'true'        
+            vnfd-connection-point-ref:
+            -   vnfd-id-ref: aggr
+                member-vnf-index-ref: '1'
+                vnfd-connection-point-ref: aggr_mgmt_cp
+            -   vnfd-id-ref: firewall
+                member-vnf-index-ref: '2'
+                vnfd-connection-point-ref: firewall_mgmt_cp
+            -   vnfd-id-ref: haproxy
+                member-vnf-index-ref: '3'
+                vnfd-connection-point-ref: haproxy_mgmt_cp
+            -   vnfd-id-ref: relay
+                member-vnf-index-ref: '4'
+                vnfd-connection-point-ref: relay_mgmt_cp
+
+        -   id: infdb-prime
+            ip-profile-ref: profile_prime      
+            name: prime
+            short-name: prime
+            description: For aggregators and firewall nodes
+            version: '1.0'
+            type: ELAN
+            vnfd-connection-point-ref:
+            -   vnfd-id-ref: aggr
+                member-vnf-index-ref: '1'
+                vnfd-connection-point-ref: aggr_prime_cp
+                ip-address: 192.168.10.5
+            -   vnfd-id-ref: firewall
+                member-vnf-index-ref: '2'
+                vnfd-connection-point-ref: firewall_prime_cp
+                ip-address: 192.168.10.15
+ 
+        -   id: infdb-private
+            ip-profile-ref: profile_private     
+            name: private
+            short-name: private
+            description: For firewall and load-balancer nodes
+            version: '1.0'
+            type: ELAN
+            vnfd-connection-point-ref:
+            -   vnfd-id-ref: firewall
+                member-vnf-index-ref: '2'
+                vnfd-connection-point-ref: firewall_private_cp
+                ip-address: 192.168.20.25
+            -   vnfd-id-ref: haproxy
+                member-vnf-index-ref: '3'
+                vnfd-connection-point-ref: haproxy_private_cp
+                ip-address: 192.168.20.35
+
+        -   id: infdb-core
+            ip-profile-ref: profile_core     
+            name: core
+            short-name: core 
+            description: For the load-balancer and relay nodes
+            version: '1.0'
+            type: ELAN
+            vnfd-connection-point-ref:
+            -   vnfd-id-ref: haproxy
+                member-vnf-index-ref: '3'
+                vnfd-connection-point-ref: haproxy_core_cp
+                ip-address: 192.168.28.2
+            -   vnfd-id-ref: relay
+                member-vnf-index-ref: '4'
+                vnfd-connection-point-ref: relay_core_cp
+                ip-address: 192.168.28.3
+
+        -   id: infdb-central
+            ip-profile-ref: profile_central
+            name: central 
+            short-name: central
+            description: For the relay-nodes and servers ndoes
+            version: '1.0'
+            type: ELAN
+            vnfd-connection-point-ref:
+            -   vnfd-id-ref: relay
+                member-vnf-index-ref: '4'
+                vnfd-connection-point-ref: relay_central_cp
+                ip-address: 192.168.30.45
+

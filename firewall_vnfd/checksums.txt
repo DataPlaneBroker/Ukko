@@ -1,0 +1,3 @@
+4ce2e3a346f195ecdb1f83beb41c1cd5  firewall_vnfd.yaml
+8602ae61c54cc867596cef2e17cea50d  cloud_init/cloud-init-firewall
+7b28e48f2d1ef4472d1b92f8a7eefe85  icons/icon.png

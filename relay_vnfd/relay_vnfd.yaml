@@ -1,0 +1,116 @@
+vnfd:vnfd-catalog:
+    vnfd:
+    -   id: relay
+        name: relay
+        short-name: relay
+        description: InfluxDB relay 
+        vendor: Abubakr Magzoub, Lancaster University
+        version: '1.0'
+
+        connection-point:        
+            -   name: relay_mgmt_cp
+                type: VPORT      
+            -   name: relay_core_cp
+                type: VPORT   
+                port-security-enabled: false
+            -   name: relay_central_cp
+                type: VPORT   
+                port-security-enabled: false
+
+        mgmt-interface:
+            cp: relay_mgmt_cp
+
+        vdu: 
+        -   id: relay
+            name: relay
+            description: InfluxDB relay
+            count: 1
+            image: 'relay-base-image'
+
+            cloud-init-file: cloud-init-relay
+
+            monitoring-param:  
+            -   id: "relay_cpu_util" 
+                nfvi-metric: "cpu_utilization" 
+
+            -   id: "relay_memory_util"
+                nfvi-metric: "average_memory_utilization" 
+           
+            -   id: "vm_status"
+                nfvi-metric: "vm_status" 
+           
+            vm-flavor: 
+                vcpu-count: 1
+                memory-mb: 4096
+                storage-gb: 10
+            
+            alarm:
+                -   alarm-id: alarm-1
+                    operation: LT
+                    value: 1
+                    actions:
+                      alarm:
+                        - url: http://172.17.0.1:8080/
+                      ok:
+                        - url: http://172.17.0.1:8080/
+                      insufficient-data:
+                        - url: http://172.17.0.1:8080/
+                    vnf-monitoring-param-ref: osm_vm_status
+            
+            interface:
+            -   name: relay_mgmt_int
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: relay_mgmt_cp
+                mgmt-interface: true 
+                position: '1' 
+
+            -   name: relay_core_int
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: relay_core_cp
+                position: '2' 
+
+            -   name: relay_central_int
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: relay_central_cp
+                position: '3' 
+
+        monitoring-param: 
+        -   id: "relay_vnf_cpu_util" 
+            name: "relay_vnf_cpu_util" 
+            aggregation-type: AVERAGE 
+            vdu-monitoring-param:  
+                vdu-ref: "relay" 
+                vdu-monitoring-param-ref: "relay_cpu_util" 
+        -   id: "osm_vm_status" 
+            name: "osm_vm_status" 
+            aggregation-type: AVERAGE 
+            vdu-monitoring-param:  
+                vdu-ref: "relay" 
+                vdu-monitoring-param-ref: "vm_status" 
+
+        scaling-group-descriptor:  
+        -   name: "apache_autoscale" 
+            min-instance-count: 0 
+            max-instance-count: 10 
+            scaling-policy: 
+            -   name: "apache_cpu_util_above_threshold" 
+                scaling-type: "automatic" 
+                threshold-time: 10 
+                cooldown-time: 120 
+                scaling-criteria: 
+                -   name: "apache_cpu_util_above_threshold" 
+                    scale-in-threshold: 0
+                    scale-in-relational-operation: "LT" 
+                    scale-out-threshold: 50
+                    scale-out-relational-operation: "GT" 
+                    vnf-monitoring-param-ref: "relay_vnf_cpu_util" 
+
+            vdu: 
+            -   vdu-id-ref: relay
+                count: 1

@@ -1,0 +1,2 @@
+42b06d414015cb05634321ab17f73cbc  InfluxDB_nsd.yaml
+7b28e48f2d1ef4472d1b92f8a7eefe85  icons/icon.png

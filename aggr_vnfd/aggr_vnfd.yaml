@@ -1,0 +1,49 @@
+vnfd:vnfd-catalog:
+    vnfd:
+    -   id: aggr
+        name: aggr
+        short-name: aggr
+        description: The windfarm aggregator which represent the InfluxDB stress-client
+        vendor: Abubakr Magzoub, Lancaster University
+        version: '1.0'
+
+        connection-point:        
+            -   name: aggr_mgmt_cp
+                type: VPORT      
+            -   name: aggr_prime_cp
+                type: VPORT   
+                port-security-enabled: false
+
+        mgmt-interface:
+            cp: aggr_mgmt_cp
+
+        vdu: 
+        -   id: aggr
+            name: aggr
+            description: The windfarm aggregator which represent the InfluxDB stress-client
+            count: 1
+            image: 'ubuntu-aggr'
+
+            cloud-init-file: cloud-init-aggr
+
+            vm-flavor: 
+                
+                vcpu-count: 8
+                memory-mb: 8192
+                storage-gb: 10
+              
+            interface:
+            -   name: aggr_mgmt_int
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: aggr_mgmt_cp
+                mgmt-interface: true 
+                position: '1' 
+
+            -   name: aggr_prime_int
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: aggr_prime_cp
+                position: '2' 

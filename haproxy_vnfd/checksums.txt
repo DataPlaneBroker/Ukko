@@ -1,0 +1,3 @@
+d5771544768a61203d7556b4419a0e51  haproxy_vnfd.yaml
+361dcc8d078090f519ed22efaa05938e  cloud_init/cloud-init-haproxy
+7b28e48f2d1ef4472d1b92f8a7eefe85  icons/icon.png

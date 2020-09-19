@@ -1,0 +1,90 @@
+#cloud-config - Agrregator - InfluxDB stress client
+password: osm
+chpasswd: { expire: False }
+ssh_pwauth: True
+
+users:
+  - name: ubuntu
+    ssh-authorized-keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/ytsRnYehDFUX5nNhICnmR0IxtdFJjn9YAvO3CCx2FzLwOIRtMzUmHPbI3WQ+REyVZtUtdV9pHynO+E5gSolsWZrw9hJ4qT6+T078gayAIpp/i4tJtpOdJwUoOxf8w2AyIcbtH9DJwkv1y8Cx0hFh2TlBKmNnCsE0fGGYHlkusn1odYl1j9t3l037KW7KEpDMslSSYw0Hgbt02hU8sPDZdKpepOaHww+7sEln7ENf614KVdMNw/myvUjY4e3FF3FDqtnO5TUHbFkhCE3rPIm0K1YaAHFXVMibXkcsdvrsBUAiUr79aUAiaFumoutDi2ccaE5v9HPncU3xf5bu+zGP abubakrm@dyn-227-202.lancs.ac.uk
+
+runcmd:
+  - echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo tee -a /etc/hosts
+  - sed -i '/^APT::Periodic::Update-Package-Lists /s/"1"/"0"/' /etc/apt/apt.conf.d/20auto-upgrades
+  - sed -i '/^APT::Periodic::Unattended-Upgrade /s/"1"/"0"/' /etc/apt/apt.conf.d/20auto-upgrades
+  - sudo ifconfig ens4 192.168.10.5 netmask 255.255.255.0
+  - sudo ip route add 192.168.20.0/24 via 192.168.10.15
+  - [ chown, -R, 'ubuntu:', /home/ubuntu ]
+  - mkdir /home/ubuntu/bin
+  - mkdir /home/ubuntu/gocode
+  - wget https://storage.googleapis.com/golang/go1.14.2.linux-amd64.tar.gz
+  - sudo tar -C /usr/local -xvf go1.14.2.linux-amd64.tar.gz
+  - echo ' ' >> /home/ubuntu/.bashrc
+  - echo 'export GOPATH=/home/ubuntu/gocode' >> /home/ubuntu/.bashrc
+  - echo 'export GOROOT=/usr/local/go' >> /home/ubuntu/.bashrc
+  - echo 'export PATH=$PATH:$GOROOT/bin' >> /home/ubuntu/.bashrc
+  - source /home/ubuntu/.bashrc   
+
+write_files:
+-   content: |
+        #!/bin/bash
+        
+        echo ""
+        ping -c 3 192.168.10.5 && 
+        echo "-------------------------------------------------------------------------------"
+        ping -c 3 192.168.10.15 &&
+        echo "-------------------------------------------------------------------------------"
+        ping -c 3 192.168.20.25 &&
+        echo "-------------------------------------------------------------------------------"
+        ping -c 3 192.168.20.35 &&
+        echo ""
+
+    owner: root:root
+    permissions: '755'
+    path: /home/ubuntu/bin/check-interfaces
+
+-   content: |
+        #!/bin/bash
+        
+        sudo ab -k -n 10000000 -c 20 http://192.168.20.35/
+
+    owner: root:root
+    permissions: '755'
+    path: /home/ubuntu/bin/abstress
+
+-   content: |
+        #!/bin/bash
+
+        ./gocode/bin/influx-stress insert --host http://192.168.20.35:8086 --user osm --pass osm -n 10000 | tee ~/influx-log.txt
+
+    owner: root:root
+    permissions: '755'
+    path: /home/ubuntu/bin/idbstress
+
+-   content: |
+        #!/bin/bash
+
+        ./gocode/bin/inch -v -c 8 -b 10000 -t 2,5000,1 -p 100000 -consistency any -host http://192.168.20.35:8086 | tee ~/inch-log.txt &&
+        cut -d \  -f 1,8,21 /home/ubuntu/inch-log.txt | tr -d T= | tr -d ms, > /home/ubuntu/log.txt &&
+        echo "Done !"
+
+    owner: root:root
+    permissions: '755'
+    path: /home/ubuntu/bin/inchstress
+
+-   content: |
+        #!/bin/bash
+        
+        sudo chown -R ubuntu: /home/ubuntu
+        go get -v github.com/influxdata/influx-stress/cmd/...
+        go get github.com/influxdata/inch/cmd/inch
+
+    owner: root:root
+    permissions: '755'
+    path: /home/ubuntu/bin/setup
+
+
+
+
+
+

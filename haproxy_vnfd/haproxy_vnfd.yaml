@@ -1,0 +1,59 @@
+vnfd:vnfd-catalog:
+    vnfd:
+    -   id: haproxy
+        name: haproxy
+        short-name: haproxy
+        description: Balances requests to InfluxDB nodes within one cluster
+        vendor: Abubakr Magzoub, Lancaster University
+        version: '1.0'
+
+        connection-point:        
+            -   name: haproxy_mgmt_cp
+                type: VPORT      
+            -   name: haproxy_private_cp
+                type: VPORT   
+                port-security-enabled: false
+            -   name: haproxy_core_cp
+                type: VPORT
+                port-security-enabled: false
+            
+        mgmt-interface:
+            cp: haproxy_mgmt_cp
+
+        vdu:
+        -   id: haproxy
+            name: haproxy
+            description: Balances requests to InfluxDB nodes within one cluster 
+            count: 1
+            image: 'ubuntu-proxy'
+
+            cloud-init-file: cloud-init-haproxy
+
+            vm-flavor: 
+                vcpu-count: 1
+                memory-mb: 4096
+                storage-gb: 10 
+              
+            interface:
+            -   name: haproxy_mgmt_int
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: haproxy_mgmt_cp
+                mgmt-interface: true 
+                position: '1' 
+
+            -   name: haproxy_private_int
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: haproxy_private_cp
+                position: '2' 
+
+            -   name: haproxy_core_int
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: haproxy_core_cp
+                position: '3' 
+
